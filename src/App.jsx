@@ -348,7 +348,7 @@ function LigaManager() {
   return (
     <div style={{ background: C.bg, minHeight: "100%", color: C.text, fontFamily: "'Inter', -apple-system, 'Segoe UI', sans-serif" }}>
       <GlobalStyle />
-      <header style={{ borderBottom: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: C.panel }}>
+      <header className="lm-header" style={{ borderBottom: `1px solid ${C.border}`, background: C.panel }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 8, background: C.primary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#fff", fontSize: 16 }}>⚽</div>
           <div>
@@ -389,24 +389,45 @@ function GlobalStyle() {
   return (
     <style>{`
       * { box-sizing: border-box; }
+      html, body { overflow-x: hidden; }
       .lm-mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace; font-weight: 700; }
       .lm-card { background:${C.panel}; border:1px solid ${C.border}; border-radius:14px; padding:20px; margin-bottom:16px; }
-      .lm-btn { background:${C.primary}; color:#fff; border:none; padding:10px 16px; font-weight:700; cursor:pointer; border-radius:9px; font-size:14px; transition:opacity .15s; }
+      .lm-btn { background:${C.primary}; color:#fff; border:none; padding:10px 16px; font-weight:700; cursor:pointer; border-radius:9px; font-size:14px; transition:opacity .15s; white-space:nowrap; }
       .lm-btn:hover { opacity:.88; }
       .lm-btn:disabled { opacity:.35; cursor:not-allowed; }
-      .lm-btn-outline { background:#fff; border:1px solid ${C.border}; color:${C.text}; padding:8px 14px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; transition:border-color .15s; }
+      .lm-btn-outline { background:#fff; border:1px solid ${C.border}; color:${C.text}; padding:8px 14px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; transition:border-color .15s; white-space:nowrap; }
       .lm-btn-outline:hover { border-color:${C.primary}; }
-      .lm-input { background:${C.panelAlt}; border:1px solid ${C.border}; color:${C.text}; padding:9px 11px; border-radius:8px; font-size:14px; outline:none; }
+      .lm-input { background:${C.panelAlt}; border:1px solid ${C.border}; color:${C.text}; padding:9px 11px; border-radius:8px; font-size:14px; outline:none; width:100%; }
       .lm-input:focus { border-color:${C.primary}; }
       .lm-input::placeholder { color:${C.sub}; }
       table.lm-table { width:100%; border-collapse:collapse; font-size:13.5px; }
-      table.lm-table th { text-align:left; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:${C.sub}; border-bottom:1px solid ${C.border}; font-weight:700; }
+      table.lm-table th { text-align:left; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:${C.sub}; border-bottom:1px solid ${C.border}; font-weight:700; white-space:nowrap; }
       table.lm-table td { padding:9px 10px; border-bottom:1px solid ${C.border}; }
       table.lm-table tr:last-child td { border-bottom:none; }
       table.lm-table tr:hover td { background:${C.panelAlt}; }
       select.lm-input { -webkit-appearance:none; appearance:none; }
       ::-webkit-scrollbar { height:8px; width:8px; }
       ::-webkit-scrollbar-thumb { background:${C.border}; border-radius:8px; }
+
+      .lm-table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .lm-table-wrap table.lm-table { min-width: 460px; }
+
+      .lm-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:16px 20px; }
+
+      .lm-player-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 0; border-bottom:1px solid ${C.border}; }
+      .lm-player-row:last-child { border-bottom:none; }
+      .lm-player-main { flex:1 1 160px; min-width:0; }
+      .lm-player-name { font-weight:600; font-size:14px; }
+      .lm-player-pos { font-size:12px; color:${C.sub}; margin-top:2px; }
+      .lm-player-actions { display:flex; gap:8px; flex-wrap:wrap; }
+      .lm-player-edit { flex-basis:100%; display:flex; flex-direction:column; gap:8px; }
+
+      @media (max-width: 560px) {
+        .lm-card { padding:14px; border-radius:12px; }
+        .lm-header { padding:14px 16px; }
+        .lm-btn, .lm-btn-outline { padding:8px 12px; font-size:13px; }
+        table.lm-table { font-size:12.5px; }
+      }
     `}</style>
   );
 }
@@ -536,37 +557,36 @@ function EquiposView({ teams, customPositions, onAddTeam, onDeleteTeam, onAddPla
           </div>
           {openTeam === t.id && (
             <div style={{ marginTop: 16, borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
-              <table className="lm-table">
-                <thead><tr><th>Jugador</th><th>Posiciones</th><th></th></tr></thead>
-                <tbody>
-                  {t.players.map((p) => (
-                    <tr key={p.id}>
-                      {editingId === p.id ? (
-                        <>
-                          <td><input className="lm-input" value={eName} onChange={(e) => setEName(e.target.value)} /></td>
-                          <td><PositionMultiSelect selected={ePos} onChange={setEPos} customPositions={customPositions} onAddCustom={onAddCustomPosition} /></td>
-                          <td style={{ textAlign: "right", whiteSpace: "nowrap", verticalAlign: "top" }}>
-                            <button className="lm-btn-outline" onClick={() => saveEdit(t.id)} style={{ marginRight: 6 }}>Guardar</button>
-                            <button className="lm-btn-outline" onClick={() => setEditingId(null)}>Cancelar</button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{p.name}</td>
-                          <td>{(p.positions || []).join(", ") || <span style={{ color: C.sub }}>—</span>}</td>
-                          <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                            <button className="lm-btn-outline" onClick={() => startEdit(p)} style={{ marginRight: 6 }}>Editar</button>
-                            <button className="lm-btn-outline" onClick={() => onRemovePlayer(t.id, p.id)} style={{ color: C.red }}>Quitar</button>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div>
+                {t.players.map((p) => (
+                  <div key={p.id} className="lm-player-row">
+                    {editingId === p.id ? (
+                      <div className="lm-player-edit">
+                        <input className="lm-input" value={eName} onChange={(e) => setEName(e.target.value)} placeholder="Nombre jugador" />
+                        <PositionMultiSelect selected={ePos} onChange={setEPos} customPositions={customPositions} onAddCustom={onAddCustomPosition} />
+                        <div className="lm-player-actions">
+                          <button className="lm-btn-outline" onClick={() => saveEdit(t.id)}>Guardar</button>
+                          <button className="lm-btn-outline" onClick={() => setEditingId(null)}>Cancelar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="lm-player-main">
+                          <div className="lm-player-name">{p.name}</div>
+                          <div className="lm-player-pos">{(p.positions || []).join(", ") || "—"}</div>
+                        </div>
+                        <div className="lm-player-actions">
+                          <button className="lm-btn-outline" onClick={() => startEdit(p)}>Editar</button>
+                          <button className="lm-btn-outline" onClick={() => onRemovePlayer(t.id, p.id)} style={{ color: C.red }}>Quitar</button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
               <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
                 <input className="lm-input" placeholder="Nombre jugador" value={pName} onChange={(e) => setPName(e.target.value)} style={{ flex: 1, minWidth: 160 }} />
-                <PositionMultiSelect selected={pPos} onChange={setPPos} customPositions={customPositions} onAddCustom={onAddCustomPosition} style={{ minWidth: 260 }} />
+                <PositionMultiSelect selected={pPos} onChange={setPPos} customPositions={customPositions} onAddCustom={onAddCustomPosition} style={{ minWidth: 220, flex: "1 1 220px" }} />
                 <button className="lm-btn" onClick={() => { onAddPlayer(t.id, pName, pPos); setPName(""); setPPos([]); }}>Añadir</button>
               </div>
             </div>
@@ -709,6 +729,7 @@ function CompeticionDetalle({ comp, teams, playersById, compTab, setCompTab, onB
 
       {compTab === "goleadores" && (
         <div className="lm-card">
+          <div className="lm-table-wrap">
           <table className="lm-table">
             <thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th>PJ</th><th style={{ textAlign: "right" }}>Media/partido</th><th style={{ textAlign: "right" }}>Goles</th></tr></thead>
             <tbody>
@@ -717,11 +738,13 @@ function CompeticionDetalle({ comp, teams, playersById, compTab, setCompTab, onB
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {compTab === "porteros" && (
         <div className="lm-card">
+          <div className="lm-table-wrap">
           <table className="lm-table">
             <thead><tr><th>#</th><th>Portero</th><th>Equipo</th><th>PJ</th><th>Encajados</th><th style={{ textAlign: "right" }}>Media/partido</th></tr></thead>
             <tbody>
@@ -730,6 +753,7 @@ function CompeticionDetalle({ comp, teams, playersById, compTab, setCompTab, onB
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
@@ -738,19 +762,21 @@ function CompeticionDetalle({ comp, teams, playersById, compTab, setCompTab, onB
 
 function StandingsTable({ rows }) {
   return (
+    <div className="lm-table-wrap">
     <table className="lm-table">
       <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th style={{ textAlign: "right" }}>Pts</th></tr></thead>
       <tbody>
         {rows.map((r, i) => (
           <tr key={r.teamId}>
             <td>{i + 1}</td>
-            <td style={{ display: "flex", alignItems: "center", gap: 8 }}><TeamBadge name={r.name} size={22} />{r.name}</td>
+            <td style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}><TeamBadge name={r.name} size={22} />{r.name}</td>
             <td>{r.pj}</td><td>{r.pg}</td><td>{r.pe}</td><td>{r.pp}</td><td>{r.gf}</td><td>{r.gc}</td><td>{r.dg}</td>
             <td className="lm-mono" style={{ textAlign: "right", color: C.accent }}>{r.pts}</td>
           </tr>
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -789,13 +815,17 @@ function MatchRow({ m, teamsById, onUpdate, knockout }) {
 
   return (
     <div style={{ borderBottom: `1px solid ${C.border}`, padding: "10px 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end", fontSize: 13.5, fontWeight: 600 }}>{homeTeam?.name}<TeamBadge name={homeTeam?.name} size={24} /></div>
-        <div className="lm-mono" style={{ minWidth: 56, textAlign: "center", padding: "4px 10px", borderRadius: 7, background: played ? C.panelAlt : "transparent", border: `1px solid ${played ? C.border : "transparent"}`, fontSize: 14, color: C.primary }}>
-          {played ? `${m.homeScore} - ${m.awayScore}` : "vs"}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ flex: "1 1 100px", display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end", fontSize: 13.5, fontWeight: 600, minWidth: 0 }}><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{homeTeam?.name}</span><TeamBadge name={homeTeam?.name} size={24} /></div>
+          <div className="lm-mono" style={{ minWidth: 56, textAlign: "center", padding: "4px 10px", borderRadius: 7, background: played ? C.panelAlt : "transparent", border: `1px solid ${played ? C.border : "transparent"}`, fontSize: 14, color: C.primary, flexShrink: 0 }}>
+            {played ? `${m.homeScore} - ${m.awayScore}` : "vs"}
+          </div>
+          <div style={{ flex: "1 1 100px", display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, fontWeight: 600, minWidth: 0 }}><TeamBadge name={awayTeam?.name} size={24} /><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{awayTeam?.name}</span></div>
         </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, fontWeight: 600 }}><TeamBadge name={awayTeam?.name} size={24} />{awayTeam?.name}</div>
-        <button className="lm-btn-outline" onClick={() => setOpen(!open)}>{open ? "Cerrar" : played ? "Editar" : "Registrar"}</button>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <button className="lm-btn-outline" onClick={() => setOpen(!open)}>{open ? "Cerrar" : played ? "Editar" : "Registrar"}</button>
+        </div>
       </div>
       {open && (
         <div style={{ marginTop: 12, background: C.panelAlt, borderRadius: 10, padding: 14 }}>
