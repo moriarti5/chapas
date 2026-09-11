@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, createContext, useContext } from "react";
 import Papa from "papaparse";
 import { storage } from "./storage";
+import { SEED_TEAMS } from "./seedTeams";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -209,7 +210,11 @@ function LigaManager() {
 
   useEffect(() => {
     (async () => {
-      try { const t = await storage.get("ft-teams"); if (t) setTeams(migrateTeams(JSON.parse(t.value))); } catch {}
+      try {
+        const t = await storage.get("ft-teams");
+        if (t) setTeams(migrateTeams(JSON.parse(t.value)));
+        else setTeams(migrateTeams(SEED_TEAMS));
+      } catch { setTeams(migrateTeams(SEED_TEAMS)); }
       try { const c = await storage.get("ft-competitions"); if (c) setCompetitions(JSON.parse(c.value)); } catch {}
       try { const cp = await storage.get("ft-custom-positions"); if (cp) setCustomPositions(JSON.parse(cp.value)); } catch {}
       setLoaded(true);
